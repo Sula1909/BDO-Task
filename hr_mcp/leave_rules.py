@@ -16,6 +16,7 @@ ACTIVE_STATUSES = ("approved", "pending")
 ANNUAL_MAX_CONTINUOUS_DAYS = 15  # Article 4.5
 UNPAID_NOTICE_WORKING_DAYS = 10  # Article 7.2
 SICK_LATE_FILING_WORKING_DAYS = 2  # Article 6.2
+APPROVED_CANCELLATION_WORKING_DAYS = 2  # Article 4.8
 
 AUDIT_DEPARTMENT = "AUD"
 # Inclusive (month, day) ranges, Article 4.6.
@@ -97,6 +98,15 @@ def count_leave_days(start: date, end: date, day_unit: str | None, holidays: fro
 def working_days_between(after: date, before: date, holidays: frozenset[date]) -> int:
     """Working days strictly between two dates, both excluded (Article 4.4 notice counting)."""
     return sum(1 for d in date_range(after + timedelta(days=1), before - timedelta(days=1)) if is_working_day(d, holidays))
+
+
+def subtract_working_days(d: date, n: int, holidays: frozenset[date]) -> date:
+    """The date n working days before d (Article 4.8: "at least 2 working days before the start")."""
+    while n > 0:
+        d -= timedelta(days=1)
+        if is_working_day(d, holidays):
+            n -= 1
+    return d
 
 
 def required_annual_notice(days: int) -> int | None:

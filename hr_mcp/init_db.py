@@ -66,6 +66,9 @@ CREATE TABLE leave_requests (
     created_at  TEXT    NOT NULL,
     created_via TEXT    NOT NULL CHECK (created_via IN ('portal', 'assistant')),
     comment     TEXT,
+    -- Added columns (not in the CSV): set when HR approves, rejects or cancels.
+    decided_at       TEXT,
+    decision_comment TEXT,
     CHECK (end_date >= start_date)
 );
 
@@ -189,7 +192,11 @@ def load_entitlements(conn) -> int:
 def load_leave_requests(conn) -> int:
     rows = read_csv("leave_requests.csv")
     conn.executemany(
-        "INSERT INTO leave_requests VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+        """
+        INSERT INTO leave_requests
+            (request_id, employee_id, leave_type, start_date, end_date, days, status, created_at, created_via, comment)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """,
         [
             (
                 int(r["request_id"]),
