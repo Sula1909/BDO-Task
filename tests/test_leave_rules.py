@@ -7,6 +7,7 @@ from hr_mcp.leave_rules import (
     count_leave_days,
     get_balance,
     load_holidays,
+    subtract_working_days,
     validate_new_request,
     working_days_between,
 )
@@ -43,6 +44,13 @@ def test_days_column_of_every_csv_request_matches(conn):
     for r in rows:
         counted = count_leave_days(date.fromisoformat(r["start_date"]), date.fromisoformat(r["end_date"]), r["day_unit"], holidays)
         assert counted == r["days"], f"request #{r['request_id']}"
+
+
+def test_cancellation_deadline_skips_weekends_and_holidays(conn):
+    holidays = load_holidays(conn)
+    assert subtract_working_days(date(2026, 11, 11), 2, holidays) == date(2026, 11, 9)  # Wed -> Mon
+    # Wed 11-25: Tue 11-24 is one, Mon 11-23 is a holiday, Fri 11-20 is two.
+    assert subtract_working_days(date(2026, 11, 25), 2, holidays) == date(2026, 11, 20)
 
 
 def test_notice_policy_example(conn):
