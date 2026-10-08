@@ -9,5 +9,11 @@ venv/
 *.db
 *.db-journal
 
+# Extracted document text (rebuild with: python scripts/inspect_documents.py --dump)
+extracted/
+
+# Embedding cache (rebuilt automatically on first search)
+cache/
+
 # Secrets
 .env
