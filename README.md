@@ -187,9 +187,11 @@ API-ს შეცდომები (არასწორი key, ლიმი�
 
 ### მოთხოვნები
 
-Python 3.11+ 
-**OpenAI API key** ([platform.openai.com](https://platform.openai.com/api-keys)) - მხოლოდ მეორე დავალებისთვის. MCP სერვერი და ტესტები key-ს გარეშე მუშაობს
-ინტერნეტი - OpenAI API-სთვის 
+|  |  |
+|---|---|
+| Python 3.11+ |  |
+| **OpenAI API key** ([platform.openai.com](https://platform.openai.com/api-keys)) | მხოლოდ მეორე დავალებისთვის, MCP სერვერი და ტესტები key-ს გარეშე მუშაობს |
+| ინტერნეტი | OpenAI API-სთვის |
 
 Task 2 იყენებს OpenAI-ის ორ მოდელს:
 - `gpt-4o-mini`: პასუხების გენერირება, tool calling და ქართული ტექსტის ინგლისურად თარგმნა-ძიებისთვის;
