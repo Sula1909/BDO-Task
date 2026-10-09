@@ -1,6 +1,3 @@
-## ***Task 1***
-
-
 ## **რეპოზიტორიის სტრუქტურა**
 
 ```
@@ -34,6 +31,9 @@ BDO-Task/
 ```
 
 `company_hr.db` და `.venv/` ლოკალურად იქმნება და git-ში არ შედის.
+
+
+## ***Task 1***
 
 
 
@@ -91,7 +91,7 @@ BDO-Task/
 | რა | რისთვის |
 |---|---|
 | Python 3.11+ (შემოწმებულია 3.14.0-ზე) | ყველაფრისთვის |
-| **OpenAI API გასაღები** ([platform.openai.com](https://platform.openai.com/api-keys)) | მხოლოდ Task 2-ისთვის (RAG ასისტენტი). Task 1 (MCP სერვერი) და ტესტები გასაღების გარეშე მუშაობს |
+| **OpenAI API key** ([platform.openai.com](https://platform.openai.com/api-keys)) | მხოლოდ Task 2-ისთვის (RAG ასისტენტი). Task 1 (MCP სერვერი) და ტესტები key-ს გარეშე მუშაობს |
 | ინტერნეტი | OpenAI API-სთვის |
 
 Task 2 იყენებს OpenAI-ის ორ მოდელს:
@@ -112,7 +112,7 @@ pip install -r requirements.txt
 
 თუ PowerShell `Activate.ps1`-ს ბლოკავს: `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned`.
 
-### 2. OpenAI გასაღების მითითება
+### 2. OpenAI key-ს  მითითება
 
 `BDO-Task` საქაღალდეში შექმენით ფაილი `.env` ერთი ხაზით:
 
@@ -120,7 +120,7 @@ pip install -r requirements.txt
 OPENAI_API_KEY=sk-...
 ```
 
-`.env` `.gitignore`-შია და git-ში არ ხვდება. გასაღები შეიძლება გარემოს ცვლადადაც მიეთითოს (`$env:OPENAI_API_KEY="sk-..."`).
+`.env` `.gitignore`-შია და git-ში არ ხვდება. key შეიძლება გარემოს ცვლადადაც მიეთითოს (`$env:OPENAI_API_KEY="sk-..."`).
 
 ### 3. მონაცემთა ბაზის შექმნა
 
