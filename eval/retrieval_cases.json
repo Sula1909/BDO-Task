@@ -1,0 +1,282 @@
+[
+  {
+    "id": "notice-10-days",
+    "category": "conflict",
+    "question": "რამდენი დღით ადრე უნდა მოვითხოვო 10-დღიანი შვებულება?",
+    "expected": ["leave_policy:4.4"],
+    "note": "Leave 4.4: 15 working days for more than 5 days. FAQ ა.2 and Handbook 5.2 still say 5 days."
+  },
+  {
+    "id": "notice-general",
+    "category": "conflict",
+    "question": "რამდენი ხნით ადრე უნდა მოვითხოვო შვებულება?",
+    "expected": ["leave_policy:4.4"],
+    "note": "Same conflict, without the length of the leave."
+  },
+  {
+    "id": "carry-over",
+    "category": "conflict",
+    "question": "რამდენი გამოუყენებელი დღე გადადის მომავალ წელზე და როდემდე უნდა გამოვიყენო?",
+    "expected": ["leave_policy:4.7"],
+    "note": "Leave 4.7: 5 days until March 31. Handbook 5.2 / FAQ: 10 days until June 30."
+  },
+  {
+    "id": "medical-certificate",
+    "category": "conflict",
+    "question": "ავადმყოფობისას რამდენი დღის შემდეგ მჭირდება სამედიცინო ცნობა?",
+    "expected": ["leave_policy:6.3"],
+    "note": "Leave 6.3: more than 2 days. Older sources: more than 3 days."
+  },
+  {
+    "id": "remote-days",
+    "category": "conflict",
+    "question": "რამდენი დღე შემიძლია ვიმუშაო სახლიდან კვირაში?",
+    "expected": ["remote_policy:4.1"],
+    "note": "Remote 4.1: 2 days. Handbook chapter 6 / FAQ: 3 days."
+  },
+  {
+    "id": "work-abroad",
+    "category": "conflict",
+    "question": "შემიძლია საზღვარგარეთიდან ვიმუშაო?",
+    "expected": ["remote_policy:5.2"],
+    "note": "FAQ ბ.2 is vague; Remote 5.2 sets the actual rules."
+  },
+  {
+    "id": "probation-remote",
+    "category": "conflict",
+    "question": "გამოსაცდელ ვადაზე ვარ, შემიძლია სახლიდან ვიმუშაო?",
+    "expected": ["remote_policy:3.1"],
+    "note": "Remote 3.1 excludes probation; Handbook does not mention it."
+  },
+  {
+    "id": "study-materials",
+    "category": "conflict",
+    "question": "სასწავლო მასალებზე წელიწადში რამდენ თანხას ანაზღაურებს კომპანია?",
+    "expected": ["learning_policy:5.2"],
+    "note": "Current limit 600 GEL; the history chapter mentions the old value."
+  },
+  {
+    "id": "password-length",
+    "category": "conflict",
+    "question": "პაროლი მინიმუმ რამდენი სიმბოლო უნდა იყოს?",
+    "expected": ["security_policy:4.1"],
+    "note": "Current 14 characters; the history chapter mentions the old value."
+  },
+  {
+    "id": "per-diem-eu",
+    "category": "conflict",
+    "question": "ევროკავშირის ქვეყანაში მივლინებისას რა დღიური ნორმა მეკუთვნის?",
+    "expected": ["travel_policy:6.2"],
+    "note": "Table in 6.2; the history chapter mentions older rates."
+  },
+  {
+    "id": "paternity",
+    "category": "direct",
+    "question": "მამობის შვებულება რამდენი დღეა?",
+    "expected": ["leave_policy:10.3"],
+    "note": ""
+  },
+  {
+    "id": "unpaid-notice",
+    "category": "direct",
+    "question": "უხელფასო შვებულებისთვის რამდენი ხნით ადრე უნდა მივმართო?",
+    "expected": ["leave_policy:7.2"],
+    "note": ""
+  },
+  {
+    "id": "bereavement-grandmother",
+    "category": "direct",
+    "question": "ბებია გარდამეცვალა, რამდენი დღე მეკუთვნის?",
+    "expected": ["leave_policy:8.2"],
+    "note": "Grandparents are in 8.2 (other relatives), not 8.1."
+  },
+  {
+    "id": "sick-days-exhausted",
+    "category": "direct",
+    "question": "ანაზღაურებადი ავადმყოფობის დღეები რომ ამომეწუროს, რა ხდება?",
+    "expected": ["leave_policy:6.4"],
+    "note": ""
+  },
+  {
+    "id": "max-continuous",
+    "category": "direct",
+    "question": "ერთი მოთხოვნით მაქსიმუმ რამდენი დღის შვებულების აღება შემიძლია?",
+    "expected": ["leave_policy:4.5"],
+    "note": ""
+  },
+  {
+    "id": "audit-december",
+    "category": "direct",
+    "question": "აუდიტის დეპარტამენტში ვმუშაობ, დეკემბერში შვებულების აღება შემიძლია?",
+    "expected": ["leave_policy:4.6"],
+    "note": ""
+  },
+  {
+    "id": "assistant-limits",
+    "category": "direct",
+    "question": "შეუძლია HR ასისტენტს ჩემი უკვე წარდგენილი მოთხოვნის გაუქმება?",
+    "expected": ["leave_policy:12.3"],
+    "note": ""
+  },
+  {
+    "id": "lost-laptop",
+    "category": "direct",
+    "question": "ლეპტოპი დავკარგე, რა ვადაში უნდა შევატყობინო?",
+    "expected": ["security_policy:10.2"],
+    "note": ""
+  },
+  {
+    "id": "ns-ai-confidential",
+    "category": "direct",
+    "question": "შემიძლია NS-AI-ში კლიენტის კონფიდენციალური ინფორმაციის ატვირთვა?",
+    "expected": ["security_policy:6.2"],
+    "note": ""
+  },
+  {
+    "id": "exam-fee",
+    "category": "direct",
+    "question": "ACCA-ს გამოცდის საფასურს აანაზღაურებს კომპანია?",
+    "expected": ["learning_policy:5.2"],
+    "note": ""
+  },
+  {
+    "id": "repayment",
+    "category": "direct",
+    "question": "კვალიფიკაციის მიღებიდან 8 თვეში თუ წავალ კომპანიიდან, რამდენი უნდა დავაბრუნო?",
+    "expected": ["learning_policy:6.2"],
+    "note": ""
+  },
+  {
+    "id": "salary-date",
+    "category": "direct",
+    "question": "თვის რომელ რიცხვში მეძლევა ხელფასი?",
+    "expected": ["employee_handbook:4.1"],
+    "note": ""
+  },
+  {
+    "id": "resignation-notice",
+    "category": "direct",
+    "question": "სამსახურიდან წასვლამდე რამდენი ხნით ადრე უნდა გავაფრთხილო?",
+    "expected": ["employee_handbook:13.1"],
+    "note": ""
+  },
+  {
+    "id": "gift-200",
+    "category": "direct",
+    "question": "კლიენტმა 200 ლარის საჩუქარი შემომთავაზა, შემიძლია მივიღო?",
+    "expected": ["employee_handbook:8.3"],
+    "note": ""
+  },
+  {
+    "id": "working-hours",
+    "category": "direct",
+    "question": "რომელ საათზე იწყება სამუშაო დღე?",
+    "expected": ["employee_handbook:3.3"],
+    "note": ""
+  },
+  {
+    "id": "hotel-london",
+    "category": "direct",
+    "question": "ლონდონში სასტუმროს ერთი ღამის ლიმიტი რამდენია?",
+    "expected": ["travel_policy:5.1"],
+    "note": ""
+  },
+  {
+    "id": "expense-deadline",
+    "category": "direct",
+    "question": "ხარჯების ანაზღაურების მოთხოვნა რა ვადაში უნდა წარვადგინო?",
+    "expected": ["travel_policy:9.1"],
+    "note": ""
+  },
+  {
+    "id": "sick-on-trip",
+    "category": "direct",
+    "question": "მივლინების დროს ავად გავხდი, როგორ აღირიცხება ეს დღეები?",
+    "expected": ["travel_policy:13.3"],
+    "note": ""
+  },
+  {
+    "id": "sick-remote-day",
+    "category": "direct",
+    "question": "დისტანციური მუშაობის დღეს ავად გავხდი, რა უნდა გავაკეთო?",
+    "expected": ["remote_policy:10.2"],
+    "note": ""
+  },
+  {
+    "id": "abroad-during-vacation",
+    "category": "cross_document",
+    "question": "შვებულების დროს საზღვარგარეთიდან ორი დღე მუშაობა მინდა, რა ნებართვები მჭირდება?",
+    "expected": ["remote_policy:5.2", "security_policy:9.3"],
+    "note": "Remote 5.2 for the consent, Security 9.3 for the device and network rules abroad."
+  },
+  {
+    "id": "after-parental-remote",
+    "category": "cross_document",
+    "question": "მშობლის შვებულებიდან დაბრუნების შემდეგ კვირაში რამდენი დღე შემიძლია დისტანციურად ვიმუშაო?",
+    "expected": ["remote_policy:4.4", "leave_policy:10.5"],
+    "note": "Leave 10.5 points to the Remote policy; Remote 4.4 gives the number (3 days)."
+  },
+  {
+    "id": "home-monitor",
+    "category": "cross_document",
+    "question": "სახლიდან სამუშაოდ მონიტორი ვიყიდე, ამინაზღაურებენ?",
+    "expected": ["remote_policy:7.1", "travel_policy:8.1"],
+    "note": "Remote 7.1 refers to Travel 8.1, which holds the 300 GEL limit."
+  },
+  {
+    "id": "leave-after-trip",
+    "category": "cross_document",
+    "question": "მივლინების შემდეგ რამდენიმე დღით შვებულებაში დარჩენა მინდა, სასტუმროს ვინ გადაიხდის?",
+    "expected": ["travel_policy:3.4"],
+    "note": "Travel 3.4 also says the leave request goes through the Leave policy."
+  },
+  {
+    "id": "study-leave-and-fee",
+    "category": "cross_document",
+    "question": "ACCA-ს გამოცდისთვის რამდენი დღე სასწავლო შვებულება მეკუთვნის და რა ხარჯებს ფარავს კომპანია?",
+    "expected": ["leave_policy:9.1", "learning_policy:5.2"],
+    "note": "Days come from the Leave policy, money from the L&D policy."
+  },
+  {
+    "id": "parking",
+    "category": "not_in_documents",
+    "question": "ოფისთან ავტოსადგომის ხარჯს ამინაზღაურებენ?",
+    "expected": ["employee_faq:გ.2"],
+    "note": "FAQ გ.2 explicitly says parking rules are not described. The answer must say so."
+  },
+  {
+    "id": "bonus-amount",
+    "category": "not_in_documents",
+    "question": "კვალიფიკაციის მიღებისთვის რა ოდენობის ბონუსი გაიცემა?",
+    "expected": ["learning_policy:5.4"],
+    "note": "L&D 5.4: the amount is set yearly and published on the portal, not in the documents."
+  },
+  {
+    "id": "pension",
+    "category": "not_in_documents",
+    "question": "კომპანია საპენსიო შენატანში რამდენ პროცენტს იხდის?",
+    "expected": [],
+    "note": "No document covers pensions. Not scored; top results are printed for inspection."
+  },
+  {
+    "id": "pets",
+    "category": "not_in_documents",
+    "question": "შემიძლია ოფისში ძაღლის მოყვანა?",
+    "expected": [],
+    "note": "No document covers pets."
+  },
+  {
+    "id": "english-remote",
+    "category": "english",
+    "question": "How many days per week can I work from home?",
+    "expected": ["remote_policy:4.1"],
+    "note": "English question; BM25 over Georgian finds nothing, the vector side must carry it."
+  },
+  {
+    "id": "english-certificate",
+    "category": "english",
+    "question": "Do I need a doctor's note if I am sick for three days?",
+    "expected": ["leave_policy:6.3"],
+    "note": ""
+  }
+]

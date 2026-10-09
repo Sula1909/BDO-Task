@@ -53,6 +53,13 @@ def reciprocal_rank_fusion(rankings: list[list[int]], k: int = RRF_K) -> dict[in
     return scores
 
 
+def fuse_rankings(vector_ranking: list[int], keyword_ranking: list[int], k: int) -> list[int]:
+    """RRF order, except that each method's top GUARANTEED_PER_METHOD items always come first."""
+    fused = reciprocal_rank_fusion([vector_ranking, keyword_ranking])
+    guaranteed = set(vector_ranking[:GUARANTEED_PER_METHOD] + keyword_ranking[:GUARANTEED_PER_METHOD])
+    return sorted(fused, key=lambda item: (item in guaranteed, fused[item]), reverse=True)[:k]
+
+
 class HybridRetriever:
     def __init__(self, chunks: list[Chunk], embedder: Embedder, translator: Translator):
         self.chunks = chunks
@@ -67,9 +74,7 @@ class HybridRetriever:
         vector_ranking = self.vector_ranking(english_query or self.translator.translate_query(query))
         keyword_ranking = self.keyword_ranking(query)
         fused = reciprocal_rank_fusion([vector_ranking, keyword_ranking])
-
-        guaranteed = set(vector_ranking[:GUARANTEED_PER_METHOD] + keyword_ranking[:GUARANTEED_PER_METHOD])
-        best = sorted(fused, key=lambda item: (item in guaranteed, fused[item]), reverse=True)[:k]
+        best = fuse_rankings(vector_ranking, keyword_ranking, k)
 
         vector_pos = {item: rank for rank, item in enumerate(vector_ranking, start=1)}
         keyword_pos = {item: rank for rank, item in enumerate(keyword_ranking, start=1)}
