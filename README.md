@@ -86,21 +86,87 @@ BDO-Task/
 
 ## პროექტის გაშვების ინსტრუქცია
 
-მოთხოვნები: Python 3.11+ (გაკეთებულია 3.14-ზე).
+### მოთხოვნები
+
+| რა | რისთვის |
+|---|---|
+| Python 3.11+ (შემოწმებულია 3.14.0-ზე) | ყველაფრისთვის |
+| **OpenAI API გასაღები** ([platform.openai.com](https://platform.openai.com/api-keys)) | მხოლოდ Task 2-ისთვის (RAG ასისტენტი). Task 1 (MCP სერვერი) და ტესტები გასაღების გარეშე მუშაობს |
+| ინტერნეტი | OpenAI API-სთვის |
+
+Task 2 იყენებს OpenAI-ის ორ მოდელს:
+- `gpt-4o-mini`: პასუხების გენერირება, tool calling და ქართული ტექსტის ინგლისურად თარგმნა-ძიებისთვის;
+- `text-embedding-3-small`: ვექტორული ძიება (embeddings).
+
+key-ს უნდა ჰქონდეს წვდომა ორივე მოდელზე. რეპოზიტორიაში საკუთარი key არ მაქვს შენახული.
+
+
+### 1. ინსტალაცია
 
 ```powershell
 cd BDO-Task
 py -m venv .venv
-.\.venv\Scripts\Activate.ps1          # macOS/Linux: source .venv/bin/activate
+.\.venv\Scripts\Activate.ps1          # macOS/Linux: python3 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
-
-python -m hr_mcp.init_db              # CSV ფაილებიდან company_hr.db-ს შექმნა
-python -m pytest                              
-python scripts/interactive_client.py
-python scripts/demo_client.py  
 ```
 
-სერვერის MCP ჰოსტიდან (Cursor, Claude Desktop, ...) გამოსაყენებლად, დაარეგისტრირეთ stdio სერვერად.
+თუ PowerShell `Activate.ps1`-ს ბლოკავს: `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned`.
 
-სერვერი იყენებს `company_hr.db`-ს. ორიგინალი მონაცემების აღსადგენად ნებისმიერ დროს ხელახლა გაუშვით `python -m hr_mcp.init_db`.
-სხვა თარიღების შესამოწმებლად მიუთითეთ `APP_TODAY=YYYY-MM-DD`.
+### 2. OpenAI გასაღების მითითება
+
+`BDO-Task` საქაღალდეში შექმენით ფაილი `.env` ერთი ხაზით:
+
+```
+OPENAI_API_KEY=sk-...
+```
+
+`.env` `.gitignore`-შია და git-ში არ ხვდება. გასაღები შეიძლება გარემოს ცვლადადაც მიეთითოს (`$env:OPENAI_API_KEY="sk-..."`).
+
+### 3. მონაცემთა ბაზის შექმნა
+
+```powershell
+python -m hr_mcp.init_db              # CSV ფაილებიდან company_hr.db-ს შექმნა
+```
+
+### 4. ტესტები
+
+```powershell
+python -m pytest
+```
+
+ტესტები OpenAI-ს არ იძახებს (მოდელები ჩანაცვლებულია fake ობიექტებით) და key არ ჭირდება. ყველა ტესტი საკუთარ დროებით ბაზას იყენებს, ამიტომ `company_hr.db` არ იცვლება.
+
+### 5. HR ასისტენტის გაშვება (Task 2)
+
+```powershell
+python -m assistant
+```
+1. შეიყვანეთ თანამშრომლის ID, მაგ: `E1001`
+2. დასვით კითხვა ქართულად, მაგალითად:
+   - „რამდენი დღით ადრე უნდა მოვითხოვო 10-დღიანი შვებულება?“ (პოლიტიკა, წყაროს მითითებით)
+   - „რამდენი შვებულების დღე დამრჩა?“ (ბალანსი)
+   - „შვებულება მინდა 2-დან 4 ნოემბრამდე“ (მოთხოვნის შექმნა: ჯერ დასადასტურებელი ბარათი, შემდეგ „კი“)
+3. ბრძანებები: `/help`, `/new` (ახალი ჩატი), `/exit`.
+
+**პირველი გაშვება** ერთხელ თარგმნის და ვექტორებად გარდაქმნის დოკუმენტების 272 ფრაგმენტს. ამას რამდენიმე წუთი და რამდენიმე ცენტის API ჭირდება. შედეგი ინახება `cache/` საქაღალდეში (git-ში არ შედის). შემდეგი გაშვებები რამდენიმე წამში იწყება.
+
+ასისტენტი MCP სერვერს (Task 1) ავტომატურად უშვებს, ცალკე გაშვება საჭირო არ არის. ასისტენტით დადასტურებული მოთხოვნები `company_hr.db`-ში ინახება.
+
+### 6. დამატებითი სკრიპტები
+
+| ბრძანება | რას აკეთებს | key |
+|---|---|---|
+| `python scripts/demo_client.py` | MCP სერვერის შემოწმება წინასწარ განსაზღვრული გამოძახებებით (დროებით ბაზაზე) | არა |
+| `python scripts/interactive_client.py` | MCP ხელსაწყოების ხელით გამოძახება | არა |
+| `python scripts/inspect_documents.py` | დოკუმენტების ამოღებისა და დაყოფის შემოწმება (`--dump` წერს `extracted/`-ში) | არა |
+| `python scripts/search.py "კითხვა"` | ჰიბრიდული ძიების შედეგები (RAG) | კი |
+| `python scripts/ask.py "კითხვა"` | პოლიტიკის კითხვაზე პასუხი წყაროებით, ასისტენტის გარეშე | კი |
+| `python scripts/eval_retrieval.py` | ძიების ხარისხის შეფასება 40 კითხვაზე (`eval/retrieval_cases.json`) | კი |
+
+### პარამეტრები და აღდგენა
+
+- ორიგინალი მონაცემების აღსადგენად ნებისმიერ დროს ხელახლა გაუშვით `python -m hr_mcp.init_db`.
+- სხვა თარიღების შესამოწმებლად მიუთითეთ `APP_TODAY=YYYY-MM-DD` (ნაგულისხმევი: 2026-10-19).
+- სხვა ბაზის გამოსაყენებლად: `HR_DB_PATH=<გზა>`.
+- მოდელების შესაცვლელად `.env`-ში: `CHAT_MODEL=...`, `EMBEDDING_MODEL=...`.
+- სერვერის MCP ჰოსტიდან (Cursor, Claude Desktop, ...) გამოსაყენებლად დაარეგისტრირეთ stdio სერვერად: `python -m hr_mcp.server` (სამუშაო საქაღალდე `BDO-Task`).

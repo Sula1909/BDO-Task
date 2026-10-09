@@ -1,8 +1,19 @@
+# Tested with Python 3.14.0. Install: pip install -r requirements.txt
+
+# Task 1: MCP server
 mcp[cli]>=2.3,<3
-pytest>=8
-python-docx>=1.1
-pdfplumber>=0.11
-openai>=1.40
-python-dotenv>=1.0
-numpy>=1.26
-rich>=13
+
+# Task 2: document loading (RAG)
+python-docx>=1.2,<2
+pdfplumber>=0.11.10,<0.12
+
+# Task 2: OpenAI (gpt-4o-mini, text-embedding-3-small) and vector search
+openai>=3.26,<4
+python-dotenv>=1.2,<2
+numpy>=2.0,<3
+
+# Task 2: terminal interface
+rich>=13,<16
+
+# Tests
+pytest>=8,<10
