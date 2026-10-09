@@ -12,9 +12,11 @@ load_dotenv(BASE_DIR / ".env")
 CHAT_MODEL = os.getenv("CHAT_MODEL", "gpt-4o-mini")
 EMBEDDING_MODEL = os.getenv("EMBEDDING_MODEL", "text-embedding-3-small")
 CACHE_DIR = BASE_DIR / "cache"
+REQUEST_TIMEOUT_SECONDS = 60
+MAX_RETRIES = 2
 
 
 def make_client() -> OpenAI:
     if not os.getenv("OPENAI_API_KEY"):
         raise RuntimeError("OPENAI_API_KEY is not set. Add it to the .env file in the project root.")
-    return OpenAI()
+    return OpenAI(timeout=REQUEST_TIMEOUT_SECONDS, max_retries=MAX_RETRIES)

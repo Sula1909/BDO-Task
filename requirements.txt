@@ -5,3 +5,4 @@ pdfplumber>=0.11
 openai>=1.40
 python-dotenv>=1.0
 numpy>=1.26
+rich>=13

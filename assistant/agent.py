@@ -7,6 +7,7 @@ actions go through HRSession, which fixes the employee ID and refuses hr_* tools
 
 import asyncio
 import json
+from dataclasses import dataclass
 from datetime import date, timedelta
 from typing import Protocol
 
@@ -52,11 +53,12 @@ Creating a leave request:
    Use exactly the type the employee needs; never switch to another type (e.g. never UNPAID instead of
    BEREAVEMENT). For BEREAVEMENT, STUDY and PARENTAL still call propose_leave_request: the tool answers where
    they must be submitted, because the assistant can create only ANNUAL, SICK and UNPAID.
-3. A successful proposal is NOT a request yet: say it is prepared but not submitted, show the type, dates,
-   number of working days and the balance after, and ask the employee to confirm. Never say "created" or
-   "submitted" before confirm_leave_request succeeds. Call it only after the employee's next message clearly confirms.
-   If they change something, propose again. After confirming, give the request ID and say it is pending
-   approval, not approved.
+3. A successful proposal is NOT a request yet. The app shows its details (type, dates, days, balance) in a
+   confirmation card, so do not repeat them: in one or two sentences say the request is prepared but not
+   submitted and ask the employee to confirm ("კი") or decline ("არა"). Never say "created" or "submitted"
+   before confirm_leave_request succeeds. Call it only after the employee's next message clearly confirms.
+   If they decline, say nothing was submitted. If they change something, propose again.
+   After confirming, the app shows the request card; say briefly that it is pending approval, not approved.
 If a tool returns errors, explain each one in Georgian with its article (e.g. "მუხლი 4.4") and where to turn,
 using redirect_to: MANAGER = უშუალო ხელმძღვანელი, HR = HR დეპარტამენტი, HR_PORTAL = HR პორტალი,
 HR_PORTAL_OR_HR = HR პორტალი ან HR დეპარტამენტი.
@@ -171,6 +173,24 @@ class PolicyAnswerer(Protocol):
     def answer(self, question: str) -> Answer: ...
 
 
+@dataclass(frozen=True)
+class ToolEvent:
+    name: str
+    result: dict
+
+
+@dataclass(frozen=True)
+class AgentReply:
+    """The text for the employee plus every tool result of this turn (the CLI draws cards from them)."""
+
+    text: str
+    events: tuple[ToolEvent, ...] = ()
+
+    def last_result(self, tool: str) -> dict | None:
+        results = [e.result for e in self.events if e.name == tool]
+        return results[-1] if results else None
+
+
 def needs_procedure_question(arguments: dict) -> bool:
     """Sick leave in the future is unusual: the employee must first say it is for a planned procedure."""
     if str(arguments.get("leave_type", "")).upper() != "SICK" or arguments.get("planned_procedure") is True:
@@ -217,9 +237,25 @@ class Agent:
         )
         self.history: list[dict] = []
 
-    async def reply(self, text: str) -> str:
+    async def reply(self, text: str) -> AgentReply:
+        """Answer one employee message. If anything raises, the message is dropped from the history,
+        so a failed API call never leaves a half-finished tool exchange behind."""
         self.session.new_turn()
+        start = len(self.history)
+        try:
+            return await self._reply(text)
+        except BaseException:
+            del self.history[start:]
+            raise
+
+    def reset(self) -> None:
+        """Start a new conversation: forget the history and any unconfirmed proposal."""
+        self.history.clear()
+        self.session.pending = None
+
+    async def _reply(self, text: str) -> AgentReply:
         self.history.append({"role": "user", "content": text})
+        events: list[ToolEvent] = []
         for _ in range(MAX_TOOL_ROUNDS):
             response = self.client.chat.completions.create(
                 model=self.model, temperature=0, tools=TOOLS, messages=self._messages()
@@ -228,7 +264,7 @@ class Agent:
             if not message.tool_calls:
                 answer = (message.content or "").strip() or FALLBACK_REPLY
                 self.history.append({"role": "assistant", "content": answer})
-                return answer
+                return AgentReply(answer, tuple(events))
 
             self.history.append({
                 "role": "assistant",
@@ -240,11 +276,12 @@ class Agent:
             })
             for call in message.tool_calls:
                 result = await self.run_tool(call.function.name, call.function.arguments)
+                events.append(ToolEvent(call.function.name, result))
                 self.history.append(
                     {"role": "tool", "tool_call_id": call.id, "content": json.dumps(result, ensure_ascii=False)}
                 )
         self.history.append({"role": "assistant", "content": FALLBACK_REPLY})
-        return FALLBACK_REPLY
+        return AgentReply(FALLBACK_REPLY, tuple(events))
 
     async def run_tool(self, name: str, raw_arguments: str) -> dict:
         try:
