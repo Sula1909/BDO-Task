@@ -106,6 +106,33 @@ def request_panel(result: dict) -> Panel:
                  padding=(1, 2))
 
 
+def sources_panel(results: list[dict]) -> Panel | None:
+    """Sources, outdated sources and conflict notes of this turn's policy searches; None if there is nothing."""
+
+    def unique(key: str) -> list[dict]:
+        seen: dict[str, dict] = {}
+        for result in results:
+            for item in result.get(key) or []:
+                seen.setdefault(item["citation"], item)
+        return list(seen.values())
+
+    sources, outdated = unique("sources"), unique("outdated")
+    notes = list(dict.fromkeys(r["conflict_note"] for r in results if r.get("conflict_note")))
+    if not (sources or outdated or notes):
+        return None
+
+    parts: list = []
+    for note in notes:
+        parts.append(Text.assemble(("შენიშვნა: ", "bold yellow"), note))
+    if sources:
+        parts.append(Text("წყაროები:", style="bold"))
+        parts += [Text.assemble("  • ", (s["citation"], "cyan"), f" — {s['title']}") for s in sources]
+    if outdated:
+        parts.append(Text("მოძველებული ინფორმაცია (არ გამოიყენება):", style="bold"))
+        parts += [Text.assemble("  • ", (o["citation"], "dim strike"), f" — {o['title']}") for o in outdated]
+    return Panel(Group(*parts), title="წყაროები", title_align="left", border_style="dim", box=box.ROUNDED)
+
+
 def error_panel(message: str, hint: str = "") -> Panel:
     body = Text(message)
     if hint:

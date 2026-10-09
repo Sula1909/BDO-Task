@@ -59,6 +59,9 @@ async def log_in(client: Client) -> HRSession | None:
 
 def show(reply: AgentReply, session: HRSession) -> None:
     console.print(ui.reply_panel(reply.text))
+    searches = [e.result for e in reply.events if e.name == "search_policies"]
+    if (panel := ui.sources_panel(searches)) is not None:
+        console.print(panel)
     confirmed = reply.last_result("confirm_leave_request")
     proposed = reply.last_result("propose_leave_request")
     if confirmed and confirmed.get("ok"):
@@ -69,7 +72,7 @@ def show(reply: AgentReply, session: HRSession) -> None:
 
 async def converse(agent: Agent) -> None:
     while True:
-        hint = " [yellow](კი / არა)[/]" if agent.session.pending else ""
+        hint = " [yellow](კი / არა)[/]" if agent.session.awaiting_confirmation else ""
         try:
             text = read(f"\n[bold green]თქვენ[/]{hint} › ")
         except (KeyboardInterrupt, EOFError):

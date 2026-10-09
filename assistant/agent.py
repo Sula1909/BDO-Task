@@ -36,8 +36,9 @@ Always reply in Georgian, using only Georgian script. Be short and clear.
 Choosing a tool:
 - Any question about company rules, limits, deadlines, rights or procedures (leave, remote work, travel,
   expenses, training, IT security, conduct): call search_policies. Never answer such questions from your own
-  knowledge. Show the tool's answer as it is, keeping every citation in parentheses, the "შენიშვნა" line and
-  the source lists; you may add one short lead-in sentence. If the tool found nothing, say so.
+  knowledge. Give the tool's answer as it is, keeping every citation in parentheses. The app shows the source
+  list, the outdated sources and the "შენიშვნა" note in a panel below your reply, so do not repeat those lists.
+  If the tool found nothing, say so.
 - "How many days do I have": call get_leave_balance. Report the available days; mention pending days if any,
   because the balance already subtracts approved and pending requests.
 - The employee's own requests: call list_my_leave_requests.
@@ -46,7 +47,8 @@ Choosing a tool:
 
 Creating a leave request:
 1. You need the leave type and the start and end dates (YYYY-MM-DD); for UNPAID also a brief reason.
-   Ask only for what is missing; never guess dates. Plain "შვებულება" means ANNUAL.
+   Ask only for what is missing; never guess dates. Plain "შვებულება" without another type word means ANNUAL:
+   never ask for the type then (e.g. "შვებულება მინდა 16-დან 18 ნოემბრამდე" is ANNUAL, propose it right away).
    Types: ყოველწლიური = ANNUAL, ავადმყოფობის = SICK, უხელფასო = UNPAID, გლოვის / ახლობლის გარდაცვალება =
    BEREAVEMENT, სასწავლო = STUDY, დეკრეტული / მშობლის = PARENTAL.
 2. As soon as you have them, call propose_leave_request. Do NOT ask for confirmation before proposing.
@@ -294,7 +296,13 @@ class Agent:
             match name:
                 case "search_policies":
                     answer = await asyncio.to_thread(self.answerer.answer, str(arguments.get("question", "")))
-                    return {"found": answer.found, "answer": answer.format()}
+                    return {
+                        "found": answer.found,
+                        "answer": answer.format(),
+                        "sources": [{"citation": c.citation, "title": c.title} for c in answer.sources],
+                        "outdated": [{"citation": c.citation, "title": c.title} for c in answer.outdated],
+                        "conflict_note": answer.conflict_note,
+                    }
                 case "get_leave_balance":
                     return await self.session.balance(arguments.get("leave_type"), arguments.get("year"))
                 case "list_my_leave_requests":

@@ -4,7 +4,7 @@ This is the security boundary of the assistant (Leave policy, Article 12.3):
 - only the employee tools are reachable; hr_* tools are refused here, whatever the model asks;
 - the employee ID is fixed at login and added to every call, so the model can never act for someone else;
 - confirm_leave_request takes no proposal ID from the model: it confirms the session's latest proposal,
-  and only if the employee has written at least one message since that proposal was made.
+  and only in the employee's next message after that proposal; any other reply discards it.
 """
 
 import json
@@ -54,8 +54,15 @@ class HRSession:
         self.pending: PendingProposal | None = None
 
     def new_turn(self) -> None:
-        """Call once for every message the employee sends."""
+        """Call once for every message the employee sends. A proposal can only be confirmed in the next one."""
         self.turn += 1
+        if self.pending is not None and self.pending.turn < self.turn - 1:
+            self.pending = None
+
+    @property
+    def awaiting_confirmation(self) -> bool:
+        """True right after a proposal: the employee's next message is the only one that can confirm it."""
+        return self.pending is not None and self.pending.turn == self.turn
 
     async def call(self, tool: str, **arguments) -> dict:
         if tool not in EMPLOYEE_TOOLS:
