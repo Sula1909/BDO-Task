@@ -1,9 +1,11 @@
-"""Agent routing tests. OpenAI, the policy answerer and the HR session are fakes; nothing leaves the process."""
+﻿"""Agent routing tests. OpenAI, the policy answerer and the HR session are fakes; nothing leaves the process."""
 
 import asyncio
 import json
 from datetime import date
 from types import SimpleNamespace
+
+import pytest
 
 from assistant.agent import FALLBACK_REPLY, MAX_TOOL_ROUNDS, TOOLS, Agent, calendar_lines
 
@@ -18,7 +20,7 @@ def message(content=None, calls=None):
 
 
 class FakeOpenAI:
-    """Returns the scripted messages in order and records the messages it was sent."""
+    """Returns the scripted messages in order (an Exception is raised instead) and records what it was sent."""
 
     def __init__(self, *messages):
         self.messages = list(messages)
@@ -28,6 +30,8 @@ class FakeOpenAI:
     def _create(self, **kwargs):
         self.requests.append(json.loads(json.dumps(kwargs["messages"], default=str)))
         reply = self.messages.pop(0) if self.messages else message(calls=[tool_call("list_leave_types")])
+        if isinstance(reply, Exception):
+            raise reply
         return SimpleNamespace(choices=[SimpleNamespace(message=reply)])
 
 
@@ -37,6 +41,7 @@ class FakeSession:
     def __init__(self):
         self.calls = []
         self.turn = 0
+        self.pending = None
 
     def new_turn(self):
         self.turn += 1
@@ -55,10 +60,12 @@ class FakeSession:
 
     async def propose(self, leave_type, start_date, end_date, comment=None):
         self.calls.append(("propose", leave_type, start_date, end_date, comment))
+        self.pending = "p1"
         return {"ok": True, "proposal_id": "p1"}
 
     async def confirm(self):
         self.calls.append(("confirm",))
+        self.pending = None
         return {"ok": True, "request": {"request_id": 99, "status": "pending"}}
 
 
@@ -107,7 +114,8 @@ def test_calendar_runs_from_this_monday_to_year_end():
 
 def test_plain_reply_without_tools():
     agent, session, _, client = make_agent(message("გამარჯობა!"))
-    assert reply(agent, "გამარჯობა") == "გამარჯობა!"
+    result = reply(agent, "გამარჯობა")
+    assert result.text == "გამარჯობა!" and result.events == ()
     assert session.turn == 1 and session.calls == []
     assert client.requests[0][0]["role"] == "system"
 
@@ -117,7 +125,7 @@ def test_policy_question_goes_to_the_answerer_and_result_returns_to_the_model():
         message(calls=[tool_call("search_policies", {"question": "რამდენი დღით ადრე?"})]),
         message("15 სამუშაო დღე (HR-POL-02 v4.0, მუხლი 4.4)"),
     )
-    assert reply(agent, "რამდენი დღით ადრე?") == "15 სამუშაო დღე (HR-POL-02 v4.0, მუხლი 4.4)"
+    assert reply(agent, "რამდენი დღით ადრე?").text == "15 სამუშაო დღე (HR-POL-02 v4.0, მუხლი 4.4)"
     assert answerer.questions == ["რამდენი დღით ადრე?"]
     tool_message = client.requests[1][-1]
     assert tool_message["role"] == "tool" and tool_message["tool_call_id"] == "call-1"
@@ -130,24 +138,51 @@ def test_two_tools_in_one_round():
                        tool_call("search_policies", {"question": "q"}, "b")]),
         message("done"),
     )
-    reply(agent, "რამდენი დღე მაქვს და როდის უნდა მოვითხოვო?")
+    result = reply(agent, "რამდენი დღე მაქვს და როდის უნდა მოვითხოვო?")
     assert session.calls == [("balance", "ANNUAL", None)]
     assert answerer.questions == ["q"]
     assert [m["tool_call_id"] for m in client.requests[1] if m["role"] == "tool"] == ["a", "b"]
+    assert [e.name for e in result.events] == ["get_leave_balance", "search_policies"]
 
 
-def test_leave_request_flow_routes_to_session():
+def test_leave_request_flow_routes_to_session_and_reports_results():
     agent, session, *_ = make_agent(
         message(calls=[tool_call("propose_leave_request",
                                  {"leave_type": "ANNUAL", "start_date": "2026-11-02", "end_date": "2026-11-04"})]),
         message("დაადასტურებთ?"),
         message(calls=[tool_call("confirm_leave_request")]),
-        message("მოთხოვნა #99 შექმნილია."),
+        message("მოთხოვნა გაგზავნილია."),
     )
-    reply(agent, "შვებულება მინდა 2-დან 4 ნოემბრამდე")
-    reply(agent, "კი")
+    first = reply(agent, "შვებულება მინდა 2-დან 4 ნოემბრამდე")
+    assert first.last_result("propose_leave_request")["proposal_id"] == "p1"
+    assert first.last_result("confirm_leave_request") is None
+    second = reply(agent, "კი")
+    assert second.last_result("confirm_leave_request")["request"]["request_id"] == 99
     assert session.calls == [("propose", "ANNUAL", "2026-11-02", "2026-11-04", None), ("confirm",)]
     assert session.turn == 2
+
+
+def test_failed_api_call_leaves_no_trace_in_history():
+    agent, *_ = make_agent(
+        message("პირველი"),
+        message(calls=[tool_call("get_leave_balance")]),
+        ConnectionError("network down"),
+        message("მეორე"),
+    )
+    reply(agent, "ერთი")
+    with pytest.raises(ConnectionError):
+        reply(agent, "ორი")
+    assert [m["content"] for m in agent.history] == ["ერთი", "პირველი"]
+    assert reply(agent, "სამი").text == "მეორე"
+    assert [m["content"] for m in agent.history] == ["ერთი", "პირველი", "სამი", "მეორე"]
+
+
+def test_reset_forgets_history_and_pending_proposal():
+    agent, session, *_ = make_agent(message("ok"))
+    reply(agent, "გამარჯობა")
+    session.pending = "p1"
+    agent.reset()
+    assert agent.history == [] and session.pending is None
 
 
 def test_future_sick_leave_needs_the_procedure_question(monkeypatch):
@@ -175,7 +210,7 @@ def test_unknown_tool_and_bad_arguments_return_errors_to_the_model():
 
 def test_endless_tool_calls_stop_with_fallback():
     agent, session, *_ = make_agent()
-    assert reply(agent, "?") == FALLBACK_REPLY
+    assert reply(agent, "?").text == FALLBACK_REPLY
     assert len(session.calls) == MAX_TOOL_ROUNDS
 
 
