@@ -75,7 +75,13 @@ class FakeAnswerer:
 
     def answer(self, question):
         self.questions.append(question)
-        return SimpleNamespace(found=True, format=lambda: "15 სამუშაო დღე (HR-POL-02 v4.0, მუხლი 4.4)")
+        return SimpleNamespace(
+            found=True,
+            format=lambda: "15 სამუშაო დღე (HR-POL-02 v4.0, მუხლი 4.4)",
+            sources=[SimpleNamespace(citation="HR-POL-02 v4.0, მუხლი 4.4", title="წინასწარი შეტყობინება")],
+            outdated=[SimpleNamespace(citation="HR-FAQ-01 v1.4, კითხვა ა.2", title="რამდენი ხნით ადრე?")],
+            conflict_note="FAQ-ის 5 დღე მოძველებულია.",
+        )
 
 
 def make_agent(*messages):
@@ -129,7 +135,11 @@ def test_policy_question_goes_to_the_answerer_and_result_returns_to_the_model():
     assert answerer.questions == ["რამდენი დღით ადრე?"]
     tool_message = client.requests[1][-1]
     assert tool_message["role"] == "tool" and tool_message["tool_call_id"] == "call-1"
-    assert "მუხლი 4.4" in json.loads(tool_message["content"])["answer"]
+    result = json.loads(tool_message["content"])
+    assert "მუხლი 4.4" in result["answer"]
+    assert result["sources"] == [{"citation": "HR-POL-02 v4.0, მუხლი 4.4", "title": "წინასწარი შეტყობინება"}]
+    assert result["outdated"][0]["citation"] == "HR-FAQ-01 v1.4, კითხვა ა.2"
+    assert result["conflict_note"] == "FAQ-ის 5 დღე მოძველებულია."
 
 
 def test_two_tools_in_one_round():

@@ -107,6 +107,21 @@ def test_confirm_after_the_employee_replied_creates_a_pending_request():
     run(scenario)
 
 
+def test_proposal_expires_if_the_next_message_does_not_confirm_it():
+    async def scenario(client):
+        session = HRSession(client, EMPLOYEE)
+        session.new_turn()
+        await session.propose(**ANNUAL)
+        assert session.awaiting_confirmation
+        session.new_turn()
+        assert session.pending is not None and not session.awaiting_confirmation
+        session.new_turn()
+        assert session.pending is None
+        assert (await session.confirm())["errors"][0]["code"] == "NO_PROPOSAL"
+
+    run(scenario)
+
+
 def test_failed_proposal_leaves_nothing_to_confirm():
     async def scenario(client):
         session = HRSession(client, EMPLOYEE)

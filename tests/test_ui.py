@@ -70,6 +70,35 @@ def test_request_card_shows_number_and_georgian_status():
     assert "უკვე გაგზავნილია" in render(ui.request_panel({**CONFIRMED, "already_confirmed": True}))
 
 
+SEARCH = {
+    "found": True,
+    "answer": "...",
+    "sources": [{"citation": "HR-POL-02 v4.0, მუხლი 4.4", "title": "წინასწარი შეტყობინება"}],
+    "outdated": [{"citation": "HR-FAQ-01 v1.4, კითხვა ა.2", "title": "რამდენი ხნით ადრე?"}],
+    "conflict_note": "FAQ-ში მითითებული 5 სამუშაო დღე მოძველებულია; მოქმედებს პოლიტიკის წესი.",
+}
+
+
+def test_sources_panel_shows_note_sources_and_outdated():
+    text = render(ui.sources_panel([SEARCH]))
+    assert "შენიშვნა: FAQ-ში მითითებული 5 სამუშაო დღე მოძველებულია" in text
+    assert "წყაროები:" in text and "HR-POL-02 v4.0, მუხლი 4.4 — წინასწარი შეტყობინება" in text
+    assert "მოძველებული ინფორმაცია (არ გამოიყენება):" in text and "HR-FAQ-01 v1.4, კითხვა ა.2" in text
+
+
+def test_sources_panel_merges_searches_without_duplicates():
+    other = {"sources": [SEARCH["sources"][0], {"citation": "HR-POL-05 v2.0, მუხლი 4.1", "title": "ლიმიტი"}],
+             "outdated": [], "conflict_note": ""}
+    text = render(ui.sources_panel([SEARCH, other]))
+    assert text.count("HR-POL-02 v4.0, მუხლი 4.4") == 1
+    assert "HR-POL-05 v2.0, მუხლი 4.1" in text
+
+
+def test_sources_panel_is_omitted_when_nothing_was_found():
+    assert ui.sources_panel([]) is None
+    assert ui.sources_panel([{"found": False, "answer": "x", "sources": [], "outdated": [], "conflict_note": ""}]) is None
+
+
 def test_welcome_panel_shows_employee_date_and_commands():
     text = render(ui.welcome_panel("E1001", date(2026, 10, 19)))
     assert "E1001" in text and "2026-10-19" in text
